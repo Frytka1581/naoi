@@ -1,0 +1,59 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> parent;
+vector<int> rank_;
+
+// Inicjalizacja DSU
+void make_set(int n) {
+    parent.resize(n);
+    rank_.resize(n, 0);
+    for (int i = 0; i < n; ++i)
+        parent[i] = i;
+}
+
+// Find z path compression
+int find(int x) {
+    if (parent[x] != x)
+        parent[x] = find(parent[x]);
+    return parent[x];
+}
+
+// Union by rank
+void unite(int x, int y) {
+    int rootX = find(x);
+    int rootY = find(y);
+    if (rootX == rootY) return;
+
+    if (rank_[rootX] < rank_[rootY]) {
+        parent[rootX] = rootY;
+    } else if (rank_[rootX] > rank_[rootY]) {
+        parent[rootY] = rootX;
+    } else {
+        parent[rootY] = rootX;
+        rank_[rootX]++;
+    }
+}
+
+// Sprawdzenie, czy dwa elementy są w tym samym zbiorze
+bool connected(int x, int y) {
+    return find(x) == find(y);
+}
+
+// Przykład użycia
+int main() {
+    int n = 10;
+    make_set(n);
+
+    unite(1, 2);
+    unite(2, 3);
+    unite(4, 5);
+
+    cout << connected(1, 3) << "\n"; // 1 (true)
+    cout << connected(1, 4) << "\n"; // 0 (false)
+
+    unite(3, 4);
+    cout << connected(1, 5) << "\n"; // 1 (true)
+
+    return 0;
+}
