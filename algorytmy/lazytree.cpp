@@ -3,7 +3,7 @@
 #include <iostream>
 using namespace std;
 #define MAX 1000
-// w
+
 // Ideally, we should not use global variables and large
 // constant-sized arrays, we have done it here for simplicity.
 int tree[MAX] = {0};  // To store segment tree

@@ -1,0 +1,240 @@
+#include <bits/stdc++.h>
+using namespace std;
+vector<vector<char>> plansza;
+vector<vector<int>> w_drzewie;
+vector<int> kolejne_drzewo;
+vector<vector<int>> odleglosci;
+vector<tuple<int, int, pair<int, int>>> ciag;
+vector<int> drzewo;
+int n, q, k;
+void policz(int i, int j, int s)
+{
+    if (odleglosci[i][j] < s)
+        return;
+    odleglosci[i][j] = s;
+    if (i > 0 && plansza[i - 1][j] != '#')
+        policz(i - 1, j, s + 1);
+    if (i < n - 1 && plansza[i + 1][j] != '#')
+        policz(i + 1, j, s + 1);
+    if (j > 0 && plansza[i][j - 1] != '#')
+        policz(i, j - 1, s + 1);
+    if (j < n - 1 && plansza[i][j + 1] != '#')
+        policz(i, j + 1, s + 1);
+}
+void zmien(int index)
+{
+    if (kolejne_drzewo[index] == 0)
+    {
+        while (index > 0)
+        {
+            kolejne_drzewo[index]++;
+            index /= 2;
+        }
+    }
+    else
+    {
+        while (index > 0)
+        {
+            kolejne_drzewo[index]--;
+            index /= 2;
+        }
+    }
+}
+int zwroc(int l, int r, int lq, int rq, int index)
+{
+    if (lq <= l && r <= rq)
+    {
+        return kolejne_drzewo[index];
+    }
+    else if (r < lq || rq < l)
+    {
+        return 0;
+    }
+    else
+    {
+        int sr = (l + r + 1) / 2;
+        return zwroc(l, sr - 1, lq, rq, index * 2) + zwroc(sr, r, lq, rq, index * 2 + 1);
+    }
+}
+void insert(int index, int wartosc)
+{
+    while (index > 0)
+    {
+        drzewo[index] = max(drzewo[index], wartosc);
+        index /= 2;
+    }
+}
+void empty(int index, bool czy)
+{
+    if (czy)
+    {
+        drzewo[index] = 0;
+    }
+    index /= 2;
+    while (index > 0)
+    {
+        drzewo[index] = max(drzewo[index * 2], drzewo[index * 2 + 1]);
+        index /= 2;
+    }
+}
+void dodajpo(int l, int r, int lq, int rq, int index)
+{
+    if (lq <= l && r <= rq)
+    {
+        drzewo[index]++;
+        insert(index, drzewo[index]);
+    }
+    else if (r < lq || rq < l)
+    {
+        // return ;
+    }
+    else
+    {
+        int sr = (l + r + 1) / 2;
+        dodajpo(l, sr - 1, lq, rq, index * 2);
+        dodajpo(sr, r, lq, rq, index * 2 + 1);
+    }
+}
+void usunpo(int l, int r, int lq, int rq, int index)
+{
+    if (lq <= l && r <= rq)
+    {
+        drzewo[index]--;
+        drzewo[index] = max(drzewo[index], 0);
+        empty(index, 0);
+    }
+    else if (r < lq || rq < l)
+    {
+        // return ;
+    }
+    else
+    {
+        int sr = (l + r + 1) / 2;
+        usunpo(l, sr - 1, lq, rq, index * 2);
+        usunpo(sr, r, lq, rq, index * 2 + 1);
+    }
+}
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    
+    char znak;
+    cin >> n >> q;
+
+    plansza.resize(n + 7);
+    odleglosci.resize(n + 7, (vector<int>(n + 7, 1e9)));
+    w_drzewie.resize(n + 7, (vector<int>(n + 7, 1e9)));
+        odleglosci[0][0] = 0;
+    for (int i = 0; i < n; ++i)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            cin >> znak;
+            plansza[i].push_back(znak);
+        }
+    }
+    policz(0, 0, 0);
+    k = 1;
+    while (k < n * n)
+        k <<= 1;
+    drzewo.resize(k * 2);
+    kolejne_drzewo.resize(k * 2);
+    for (int i = 0; i < n; ++i)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            if (odleglosci[i][j] != 1e9 && plansza[i][j] != 'Z')
+            {
+                if (plansza[i][j] == 'F')
+                    ciag.push_back({odleglosci[i][j], 1, {i, j}});
+                else
+                    ciag.push_back({odleglosci[i][j], 0, {i, j}});
+            }
+        }
+    }
+    sort(ciag.rbegin(), ciag.rend());
+    int dodanie = 0;
+    for (int i = 0; i < ciag.size(); ++i)
+    {
+        pair<int, int> pozycja = get<2>(ciag[i]);
+        w_drzewie[pozycja.first][pozycja.second] = i;
+        if (get<1>(ciag[i]) == 1)
+        {
+            insert(k + i, get<0>(ciag[i]) + dodanie);
+            dodanie++;
+            zmien(k + i);
+        }
+        else
+            insert(k + i, 0);
+    }
+    // cout << k << endl;
+    // dodajpo(1,k,1,1,1);
+    // empty(k,1);
+    // usunpo(1,k,2,k,1);
+    int l, r;
+    cout << drzewo[1] << endl;
+    // for(int i=0;i<n;++i){
+    //     for(int j=0;j<n;++j){
+    //         cout << w_drzewie[i][j] << ' ';
+    //     }
+    //     cout << endl;
+    // }
+    // cout << "--------------------" << endl;
+    // zmien(k+1);
+    // zmien(k+2);
+    // cout << zwroc(1,k,1,3,1) << endl;
+
+    // for(int i=1;i<kolejne_drzewo.size();++i){
+    //     cout << kolejne_drzewo[i] << endl;
+    // }
+    for (int i = 0; i < q; ++i)
+    {
+        cin >> l >> r;
+        int lswa=l;
+        int rswa=r;
+        // l=rswa;
+        // r=lswa;
+        l--;
+        r--;
+        //swap(l,r);
+        if (plansza[l][r] == 'F')
+        {
+            zmien(w_drzewie[l][r] + k);
+            empty(w_drzewie[l][r] + k, 1);
+            usunpo(1, k, w_drzewie[l][r] + 2, k, 1);
+            plansza[l][r] = '.';
+        }
+        else if(plansza[l][r]=='.')
+        {
+            int s = zwroc(1, k, 1, w_drzewie[l][r], 1);
+            //cout << zwroc(1, k, 1, k, 1) << endl;
+            zmien(w_drzewie[l][r] + k);
+            insert(w_drzewie[l][r] + k, s + odleglosci[l][r]);
+            dodajpo(1, k, w_drzewie[l][r] + 2, k, 1);
+            plansza[l][r] = 'F';
+        }
+        // else{
+        //     cout << "DLATEGO" << endl;
+        // }
+        // for(int i=1;i<drzewo.size();++i){
+        //     cout << drzewo[i] << endl;
+        // }
+        // cout << "--------------------" << endl;
+        
+        cout << drzewo[1] << endl;
+    }
+    // for(int i=1;i<drzewo.size();++i){
+    //     cout << drzewo[i] << endl;
+    // }
+    // for(int i=0;i<n;++i){
+    //     for(int j=0;j<n;++j){
+    //         if(odleglosci[i][j]==1e9)
+    //         cout << -1 << ' ';
+    //         else
+    //         cout << odleglosci[i][j] << ' ';
+    //     }
+    //     cout << endl;
+    // }
+    return 0;
+}

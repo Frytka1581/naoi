@@ -1,0 +1,87 @@
+{
+    "Codeforces Template": {
+        "prefix": "cpp",
+        "body": [
+            "#include <bits/stdc++.h>",
+            "using namespace std;",
+            "",
+            "#define fastio ios::sync_with_stdio(false); cin.tie(nullptr);",
+            "#define s(x) x.size()",
+            "#define sort(x) sort(x.begin(),x.end())",
+            "#define rsort(x) sort(x.rbegin(),x.rend())",
+            "#define all(x) (x).begin(), (x).end()",
+            "#define pb push_back",
+            "#define fi first",
+            "#define se second",
+            "#define INF 1e9",
+            "#define INFL 1e18",
+            "",
+            "using ll = long long;",
+            "using pii = pair<int, int>;",
+            "",
+            "void solve() {",
+            "    $0",
+            "}",
+            "",
+            "int main() {",
+            "    fastio;",
+            "    int t = 1;",
+            "    // cin >> t;",
+            "    while (t--) solve();",
+            "    return 0;",
+            "}"
+    ],
+    "description": "Elegancki, szybki template C++ do Codeforces z INF i INFL"
+    },
+    "Loop For": {
+        "prefix": "fok",
+        "body": [
+            "for (int i = 0; i < ${1:n}; i++) {",
+            "    $0",
+            "}"
+        ],
+        "description": "Szybka pętla for"
+    },
+    "Vector Input": {
+        "prefix": "vcin",
+        "body": [
+            "int n; cin >> n;",
+            "vector<int> v(n);",
+            "for (int i = 0; i < n; ++i){",
+            "    cin >> v[i];",
+            "}"
+        ],
+        "description": "Wczytywanie vectora z wejścia"
+    },
+    "Debug Print": {
+        "prefix": "dbg",
+        "body": [
+            "#ifdef LOCAL",
+            "#define debug(x) cerr << #x << \": \" << x << endl;",
+            "#else",
+            "#define debug(x)",
+            "#endif"
+        ],
+        "description": "Makro do debugowania (LOCAL)"
+    },
+    "C++ Template with commented code": {
+        "prefix": "zrob",
+        "body": [
+            "#include <bits/stdc++.h>",
+            "using namespace std;",
+            "",
+            "int main() {",
+            "    ios_base::sync_with_stdio(0);",
+            "    cin.tie(0);",
+            "    cout << \"Zrobione\" << endl;",
+            "",
+            "    /*",
+            "    $0",
+            "*/",
+            "",
+            "    return 0;",
+            "}"
+        ],
+        "description": "C++ template z zakomentowanym starszym kodem"
+    }
+}

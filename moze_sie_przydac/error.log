@@ -1,0 +1,16 @@
+lazarturspr.cpp:112:20: error: use of undeclared identifier 'gcd'
+  112 |     return a * b / gcd(a, b);
+      |                    ^
+lazarturspr.cpp:146:27: error: use of undeclared identifier 'gcd'
+  146 |     ll h = gcd((m * dfy / gcd(m, dfx)), n);
+      |                           ^
+lazarturspr.cpp:147:12: error: use of undeclared identifier 'gcd'
+  147 |     ll w = gcd(dfx, m);
+      |            ^
+lazarturspr.cpp:197:23: error: use of undeclared identifier 'gcd'
+  197 |     ll opt = max(2LL, gcd(n, m));
+      |                       ^
+lazarturspr.cpp:208:13: error: use of undeclared identifier 'gcd'
+  208 |     int k = gcd(n, m);
+      |             ^
+5 errors generated.

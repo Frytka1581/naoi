@@ -1,0 +1,1 @@
+{"name":"Local: han","url":"/Users/kali/Desktop/work/OI_2025/finalne_testowanie/han.cpp","tests":[{"id":1763327225993,"input":"3\naaaaba\naaaaczzz\naaaadb","output":"21\naaaabaETBBdbETBBczzzE"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"/Users/kali/Desktop/work/OI_2025/finalne_testowanie/han.cpp","group":"local","local":true}

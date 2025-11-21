@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Animacja Króli 👑</title>
+<style>
+  body {
+    background: #111;
+    color: #eee;
+    font-family: monospace;
+    text-align: center;
+    margin: 0;
+    padding: 1em;
+  }
+  canvas {
+    background: #222;
+    display: block;
+    margin: 1em auto;
+    border: 2px solid #555;
+  }
+  input, button {
+    margin: 5px;
+    padding: 5px;
+    font-size: 14px;
+  }
+  #controls {
+    margin-bottom: 1em;
+  }
+  #speedValue {
+    display: inline-block;
+    width: 50px;
+    text-align: right;
+  }
+  #moveInfo.error {
+    color: #ff5555;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<h2>Animacja Króli 👑</h2>
+
+<div id="controls">
+  <input type="file" id="inputFile" accept=".in">
+  <input type="file" id="outputFile" accept=".out"><br>
+  <button id="startBtn">▶ Start</button>
+  <button id="stopBtn">⏸ Stop</button>
+  <button id="resetBtn">🔄 Reset</button><br>
+  <label for="speedRange">⏩ Szybkość: </label>
+  <input type="range" id="speedRange" min="20" max="500" value="100" step="10">
+  <span id="speedValue">100ms</span>
+</div>
+
+<p id="moveInfo">Brak danych.</p>
+
+<canvas id="board" width="1000" height="800"></canvas>
+
+<script>
+let canvas = document.getElementById("board");
+let ctx = canvas.getContext("2d");
+
+let inputGrid = [];
+let targetGrid = [];
+let moves = [];
+let R = 0, C = 0;
+let cellSize = 20;
+let animationInterval = null;
+let currentStep = 0;
+let speed = 100;
+let simulationOver = false;
+
+const moveInfo = document.getElementById("moveInfo");
+
+document.getElementById("speedRange").addEventListener("input", e => {
+  speed = parseInt(e.target.value);
+  document.getElementById("speedValue").innerText = `${speed}ms`;
+  if (animationInterval) {
+    clearInterval(animationInterval);
+    animationInterval = setInterval(nextStep, speed);
+  }
+});
+
+document.getElementById("inputFile").addEventListener("change", e => {
+  let file = e.target.files[0];
+  if (!file) return;
+  file.text().then(text => {
+    let lines = text.trim().split(/\r?\n/);
+    [R, C] = lines[0].split(/\s+/).map(Number);
+    inputGrid = [];
+    for (let i = 1; i <= R; i++)
+      inputGrid.push(lines[i].trim().split(/\s+/).map(Number));
+    targetGrid = [];
+    for (let i = R + 1; i <= 2 * R; i++)
+      targetGrid.push(lines[i].trim().split(/\s+/).map(Number));
+    computeScale();
+    drawBoard();
+    moveInfo.innerText = `Plansza ${R}×${C} wczytana.`;
+    simulationOver = false;
+  });
+});
+
+document.getElementById("outputFile").addEventListener("change", e => {
+  let file = e.target.files[0];
+  if (!file) return;
+  file.text().then(text => {
+    let lines = text.trim().split(/\r?\n/);
+    if (lines[0].trim() !== "TAK") {
+      alert("Brak rozwiązania (NIE)");
+      return;
+    }
+    moves = [];
+    for (let i = 2; i < lines.length; i++) {
+      let parts = lines[i].trim().split(/\s+/).map(Number);
+      if (parts.length === 3) moves.push(parts);
+    }
+    moveInfo.innerText = `Wczytano ${moves.length} ruchów.`;
+  });
+});
+
+function computeScale() {
+  cellSize = Math.min(canvas.width / C, canvas.height / R) * 0.9;
+}
+
+function drawBoard(highlight = null) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let r = 0; r < R; r++) {
+    for (let c = 0; c < C; c++) {
+      let x = c * cellSize, y = r * cellSize;
+      if (targetGrid[r] && targetGrid[r][c] > 0) {
+        ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+        ctx.fillRect(x, y, cellSize, cellSize);
+      }
+      if (highlight && highlight.r === r && highlight.c === c) {
+        ctx.fillStyle = "rgba(255, 255, 0, 0.35)";
+        ctx.fillRect(x, y, cellSize, cellSize);
+      }
+      ctx.strokeStyle = "#555";
+      ctx.strokeRect(x, y, cellSize, cellSize);
+      let val = inputGrid[r][c];
+      if (val > 0) {
+        ctx.fillStyle = `hsl(${(val * 47) % 360}, 80%, 60%)`;
+        ctx.beginPath();
+        ctx.arc((c + 0.5) * cellSize, (r + 0.5) * cellSize, cellSize / 2.5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = "#000";
+        ctx.font = `${cellSize / 2.5}px monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(val, (c + 0.5) * cellSize, (r + 0.5) * cellSize);
+      }
+    }
+  }
+}
+
+// ✅ detekcja kolizji króli
+function detectCollision() {
+  const dirs = [
+    [-1,-1], [-1,0], [-1,1],
+    [0,-1],          [0,1],
+    [1,-1], [1,0], [1,1]
+  ];
+  for (let r = 0; r < R; r++) {
+    for (let c = 0; c < C; c++) {
+      if (inputGrid[r][c] > 0) {
+        for (let [dr, dc] of dirs) {
+          let nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < R && nc >= 0 && nc < C && inputGrid[nr][nc] > 0) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+function stopAnimation(error = false) {
+  if (animationInterval) clearInterval(animationInterval);
+  animationInterval = null;
+  if (error) {
+    moveInfo.classList.add("error");
+    moveInfo.innerText = "💥 OH NO! Króle się dotknęły!";
+  }
+  simulationOver = true;
+}
+
+function nextStep() {
+  if (simulationOver) return;
+  if (currentStep >= moves.length) {
+    stopAnimation();
+    moveInfo.innerText = "✅ Animacja zakończona.";
+    drawBoard();
+    return;
+  }
+
+  let [v, r, c] = moves[currentStep];
+  drawBoard({ r: r - 1, c: c - 1 });
+
+  for (let i = 0; i < R; i++)
+    for (let j = 0; j < C; j++)
+      if (inputGrid[i][j] === v) {
+        inputGrid[i][j] = 0;
+        inputGrid[r - 1][c - 1] = v;
+        drawBoard({ r: r - 1, c: c - 1 });
+        moveInfo.innerText = `Ruch ${currentStep + 1}/${moves.length}: 👑${v} → (${r}, ${c})`;
+
+        if (detectCollision()) {
+          stopAnimation(true);
+          drawBoard();
+          return;
+        }
+
+        currentStep++;
+        return;
+      }
+}
+
+// Sterowanie
+document.getElementById("startBtn").addEventListener("click", () => {
+  if (!animationInterval && moves.length > 0 && !simulationOver)
+    animationInterval = setInterval(nextStep, speed);
+});
+document.getElementById("stopBtn").addEventListener("click", () => stopAnimation());
+document.getElementById("resetBtn").addEventListener("click", () => {
+  currentStep = 0;
+  simulationOver = false;
+  moveInfo.classList.remove("error");
+  if (animationInterval) clearInterval(animationInterval);
+  drawBoard();
+  moveInfo.innerText = "🔁 Zresetowano animację.";
+});
+</script>
+
+</body>
+</html>
